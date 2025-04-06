@@ -7,12 +7,12 @@ use crate::{
 use frame_benchmarking_cli::{BenchmarkCmd, ExtrinsicFactory, SUBSTRATE_REFERENCE_HARDWARE};
 use sc_cli::SubstrateCli;
 use sc_service::PartialComponents;
-use solochain_template_runtime::{Block, EXISTENTIAL_DEPOSIT};
+use evolute_runtime::{Block, EXISTENTIAL_DEPOSIT};
 use sp_keyring::Sr25519Keyring;
 
 impl SubstrateCli for Cli {
 	fn impl_name() -> String {
-		"Substrate Node".into()
+		"evolute node".into()
 	}
 
 	fn impl_version() -> String {
@@ -28,11 +28,11 @@ impl SubstrateCli for Cli {
 	}
 
 	fn support_url() -> String {
-		"support.anonymous.an".into()
+		"https://evolute.live/support".into()
 	}
 
 	fn copyright_start_year() -> i32 {
-		2017
+		2025
 	}
 
 	fn load_spec(&self, id: &str) -> Result<Box<dyn sc_service::ChainSpec>, String> {
@@ -45,7 +45,7 @@ impl SubstrateCli for Cli {
 	}
 }
 
-/// Parse and run command line arguments
+/// parse and run command line arguments
 pub fn run() -> sc_cli::Result<()> {
 	let cli = Cli::from_args();
 
@@ -111,8 +111,7 @@ pub fn run() -> sc_cli::Result<()> {
 					BenchmarkCmd::Pallet(cmd) => {
 						if !cfg!(feature = "runtime-benchmarks") {
 							return Err(
-								"Runtime benchmarking wasn't enabled when building the node. \
-							You can enable it with `--features runtime-benchmarks`."
+								"Runtime benchmarking wasn't enabled when building the node. You can enable it with `--features runtime-benchmarks`."
 									.into(),
 							);
 						}
@@ -181,8 +180,8 @@ pub fn run() -> sc_cli::Result<()> {
 				match config.network.network_backend {
 					sc_network::config::NetworkBackendType::Libp2p => service::new_full::<
 						sc_network::NetworkWorker<
-							solochain_template_runtime::opaque::Block,
-							<solochain_template_runtime::opaque::Block as sp_runtime::traits::Block>::Hash,
+							evolute_runtime::opaque::Block,
+							<evolute_runtime::opaque::Block as sp_runtime::traits::Block>::Hash,
 						>,
 					>(config)
 					.map_err(sc_cli::Error::Service),

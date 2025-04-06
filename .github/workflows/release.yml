@@ -1,4 +1,4 @@
-name: Release
+name: release
 
 permissions:
   contents: write
@@ -12,29 +12,27 @@ jobs:
   release-docker:
     runs-on: ubuntu-latest
     steps:
-      - name: Set up Docker Buildx
+      -
+        name: set up docker buildx
         uses: docker/setup-buildx-action@v3
-
-      - name: Login to GitHub Container Registry
+      -
+        name: login to github container registry
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      # We've run into out-of-disk error when compiling Polkadot in the next step, so we free up some space this way.
-      - name: Free Disk Space (Ubuntu)
+      -
+        name: free disk space (ubuntu)
         uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be # 1.3.1
         with:
-          android: true # This alone is a 12 GB save.
-          # We disable the rest because it caused some problems. (they're enabled by default)
-          # The Android removal is enough.
+          android: true
           dotnet: false
           haskell: false
           large-packages: false
           swap-storage: false
-
-      - name: Build and push
+      -
+        name: build and push
         uses: docker/build-push-action@v6
         with:
           push: true
@@ -43,23 +41,24 @@ jobs:
   release-binaries:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Rust compilation prerequisites
+      -
+        uses: actions/checkout@v4
+      -
+        name: rust compilation prerequisites
         run: |
           sudo apt update
           sudo apt install -y \
             protobuf-compiler
           rustup target add wasm32-unknown-unknown
           rustup component add rust-src
-
-      - name: Build the template
+      -
+        name: run build
         run: cargo build --locked --release
         timeout-minutes: 90
-
-      - name: Upload the binaries
+      -
+        name: upload binaries
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            target/release/solochain-template-node
-            target/release/wbuild/solochain-template-runtime/solochain_template_runtime.compact.compressed.wasm
+            target/release/evolute-node
+            target/release/wbuild/evolute-runtime/evolute_runtime.compact.compressed.wasm

@@ -5,7 +5,6 @@ on:
   push:
     branches:
       - main
-      - master
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -18,30 +17,33 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest]
     steps:
-      - uses: actions/checkout@v4
-
-      - if: contains(matrix.os, 'ubuntu')
+      -
+        uses: actions/checkout@v4
+      -
+        if: contains(matrix.os, 'ubuntu')
         uses: ./.github/actions/free-disk-space
-      - if: contains(matrix.os, 'ubuntu')
+      -
+        if: contains(matrix.os, 'ubuntu')
         uses: ./.github/actions/ubuntu-dependencies
-      - if: contains(matrix.os, 'macos')
+      -
+        if: contains(matrix.os, 'macos')
         uses: ./.github/actions/macos-dependencies
-
-      - name: Build the template
+      -
+        name: run build
         run: cargo build
         timeout-minutes: 90
-
-      - name: Run clippy
+      -
+        name: run clippy
         run: |
           SKIP_WASM_BUILD=1 cargo clippy --all-targets --locked --workspace --quiet
           SKIP_WASM_BUILD=1 cargo clippy --all-targets --all-features --locked --workspace --quiet
         timeout-minutes: 30
-
-      - name: Run the tests
+      -
+        name: run tests
         run: SKIP_WASM_BUILD=1 cargo test
         timeout-minutes: 15
-
-      - name: Build the docs
+      -
+        name: build docs
         run: SKIP_WASM_BUILD=1 cargo doc --workspace --no-deps
         timeout-minutes: 15
 
@@ -51,22 +53,25 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest]
     steps:
-      - uses: actions/checkout@v4
-
-      - if: contains(matrix.os, 'ubuntu')
+      -
+        uses: actions/checkout@v4
+      -
+        if: contains(matrix.os, 'ubuntu')
         uses: ./.github/actions/free-disk-space
-      - if: contains(matrix.os, 'ubuntu')
+      -
+        if: contains(matrix.os, 'ubuntu')
         uses: ./.github/actions/ubuntu-dependencies
-      - if: contains(matrix.os, 'macos')
+      -
+        if: contains(matrix.os, 'macos')
         uses: ./.github/actions/macos-dependencies
-
-      - name: Build the node individually in release mode
-        run: cargo build --package solochain-template-node --release
+      -
+        name: build the node individually in release mode
+        run: cargo build --package evolute-node --release
         timeout-minutes: 90
-
-      - name: Make sure the node is producing blocks
+      -
+        name: ensure the node is producing blocks
         run: |
-          ./target/release/solochain-template-node --dev 2>&1 | tee out.txt &
+          ./target/release/evolute-node --dev 2>&1 | tee out.txt &
           until curl -s '127.0.0.1:9944'; do sleep 5; done
           until cat out.txt | grep -s "Imported #2"; do sleep 5; done
         shell: bash
@@ -75,10 +80,14 @@ jobs:
   build-docker:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: ./.github/actions/free-disk-space
-
-      - name: Build the Dockerfile
-        run: docker build . -t polkadot-sdk-solochain-template
+      -
+        uses: actions/checkout@v4
+      -
+        uses: ./.github/actions/free-disk-space
+      -
+        id: vars
+        run: echo "git_sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+      -
+        name: build dockerfile
+        run: docker build . -t ${{ steps.vars.outputs.git_sha_short }}
         timeout-minutes: 90
